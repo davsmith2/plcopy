@@ -1,14 +1,4 @@
-﻿//
-// plcopy.exe
-//
-//      -list <playlist name>                   - source playlist to transfer, case sensitive
-//      -destination <destination folder name>  - destination folder
-//      [-library <path to iTunes XML>]         - configure which iTunes library to copy
-//      [-rnse]                                 - Audi RNSE name limits respected
-//      [-noalbums]                             - Supress album Playlists
-//
-
-// TODO:
+﻿// TODO:
 //  - Make iTunes data file relateive to the Music known folder.
 //  - Improve progress reporting to show the % of the track copied.
 //  - Support down sampling and transcoding.
@@ -35,6 +25,7 @@ namespace PlaylistCopy
             String strList = null;
             bool fLimitNames = false;
             bool fNoAlbums = false;
+            bool fBadArgs = false;
 
             Queue<String> qArgs = new Queue<String>(args);
             while (qArgs.Count > 0)
@@ -50,59 +41,74 @@ namespace PlaylistCopy
                         break;
 
                     case "-dest":
-                        strDest = qArgs.Dequeue();
+                        strDest = (qArgs.Count >=1) ? qArgs.Dequeue() : null;
                         break;
 
                     case "-list":
-                        strList = qArgs.Dequeue();
+                        strList = (qArgs.Count >=1) ? qArgs.Dequeue() : null; 
                         break;
 
                     case "-library":
-                        strLibrary = qArgs.Dequeue();
+                        strLibrary = (qArgs.Count >=1) ? qArgs.Dequeue() : null;
                         break;
 
                     default:
-                       break;
+                        fBadArgs = true;
+                        break;
                 }
             }
 
-            Console.WriteLine("Loading library: " + strLibrary);
-            Console.WriteLine("Copying list: " + strList);
-            Console.WriteLine("Destination: " + strDest);
-
-            try
+            if (strList == null || strDest == null || fBadArgs)
             {
-                TrackCollection tc;
-                new iTunesData().LoadiTunesDataFile(strLibrary, strList, out tc);
+                Console.WriteLine("");
+                Console.WriteLine("Usage: plcopy.exe");
+                Console.WriteLine("");
+                Console.WriteLine("             -list <playlist> : sets the iTunes playlist to copy");
+                Console.WriteLine("             -dest <destination folder> : sets the destination folder to copy to");
+                Console.WriteLine("             [-rnse] : respects Audi RNSE naming limitations");
+                Console.WriteLine("             [-noalbums] : turns off album playlist creation");
+                Console.WriteLine("             [-library <path to iTunes data file>] : sets iTunes library to read from");
+            }
+            else
+            {
+                Console.WriteLine("Loading library: " + strLibrary);
+                Console.WriteLine("Copying list: " + strList);
+                Console.WriteLine("Destination: " + strDest);
+
+                try
+                {
+                    TrackCollection tc;
+                    new iTunesData().LoadiTunesDataFile(strLibrary, strList, out tc);
         
-                if (tc != null)
-                {
-                    try
+                    if (tc != null)
                     {
-                        tc.CopyStageEvents += new TrackCollection.CopyStagesEventHandler(_CopyProgressHandler);
-                        tc.CopyTo(strDest, fLimitNames, !fNoAlbums);
+                        try
+                        {
+                            tc.CopyStageEvents += new TrackCollection.CopyStagesEventHandler(_CopyProgressHandler);
+                            tc.CopyTo(strDest, fLimitNames, !fNoAlbums);
+                        }
+                        catch (TrackCollection.CopyException e)
+                        {
+                            Console.WriteLine(e.Message);
+                        }
                     }
-                    catch (TrackCollection.CopyException e)
+                    else
                     {
-                        Console.WriteLine(e.Message);
+                        Console.WriteLine("No playlist called: " + strList);
                     }
                 }
-                else
+                catch (IOException)
                 {
-                    Console.WriteLine("No playlist called: " + strList);
+                    Console.WriteLine("Failed to read iTunes data file");
                 }
-            }
-            catch (IOException)
-            {
-                Console.WriteLine("Failed to read iTunes data file");
-            }
-            catch (FormatException e)
-            {
-                Console.WriteLine("Failed to parse iTunes data file: " + e.Message);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Unexepected failure: " + e.Message);
+                catch (FormatException e)
+                {
+                    Console.WriteLine("Failed to parse iTunes data file: " + e.Message);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Unexepected failure: " + e.Message);
+                }
             }
         }
     }
