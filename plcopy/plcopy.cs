@@ -1,5 +1,9 @@
-﻿// TODO:
-//  - Make iTunes data file relateive to the Music known folder.
+﻿// History:
+//  12/21/2014: Added cartype argument for specifying the make of car for the destination playlist. [DAVSMITH]
+//
+
+// TODO:
+//  - Make iTunes data file relative to the Music known folder.
 //  - Improve progress reporting to show the % of the track copied.
 //  - Support down sampling and transcoding.
 
@@ -23,6 +27,7 @@ namespace PlaylistCopy
             String strLibrary = Environment.ExpandEnvironmentVariables("%userprofile%\\Music\\iTunes\\iTunes Music Library.xml");
             String strDest = null;
             String strList = null;
+            String strCarType = "audi";
             bool fLimitNames = false;
             bool fNoAlbums = false;
             bool fBadArgs = false;
@@ -52,6 +57,10 @@ namespace PlaylistCopy
                         strLibrary = (qArgs.Count >=1) ? qArgs.Dequeue() : null;
                         break;
 
+                    case "-cartype":
+                        strCarType = (qArgs.Count >= 1) ? qArgs.Dequeue().ToLower() : null;
+                        break;
+
                     default:
                         fBadArgs = true;
                         break;
@@ -68,12 +77,14 @@ namespace PlaylistCopy
                 Console.WriteLine("             [-rnse] : respects Audi RNSE naming limitations");
                 Console.WriteLine("             [-noalbums] : turns off album playlist creation");
                 Console.WriteLine("             [-library <path to iTunes data file>] : sets iTunes library to read from");
+                Console.WriteLine("             [-cartype <audi | nissan>] : make of car on which the playlist will be used.");
             }
             else
             {
                 Console.WriteLine("Loading library: " + strLibrary);
                 Console.WriteLine("Copying list: " + strList);
                 Console.WriteLine("Destination: " + strDest);
+                Console.WriteLine("Car type: " + strCarType);
 
                 try
                 {
