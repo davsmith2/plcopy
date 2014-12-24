@@ -96,7 +96,7 @@ namespace PlaylistCopy
                         try
                         {
                             tc.CopyStageEvents += new TrackCollection.CopyStagesEventHandler(_CopyProgressHandler);
-                            tc.CopyTo(strDest, fLimitNames, !fNoAlbums);
+                            tc.CopyTo(strDest, fLimitNames, !fNoAlbums, strCarType);
                         }
                         catch (TrackCollection.CopyException e)
                         {

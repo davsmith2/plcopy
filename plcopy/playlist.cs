@@ -100,7 +100,7 @@ public class TrackCollection
     public delegate void CopyStagesEventHandler(TrackReference tr);
     public event CopyStagesEventHandler CopyStageEvents;                        // this delegate fires to notify callers of CopyTo of our progress
 
-    public void CopyTo(string strDest, bool fLimitNames, bool fAlbumPlaylists)
+    public void CopyTo(string strDest, bool fLimitNames, bool fAlbumPlaylists, string strCarType)
     {
         try
         {
